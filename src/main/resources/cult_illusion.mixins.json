@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "cult.illusion.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "CameraMixin",
+    "EntityGlowMixin",
+    "EntityRendererMixin",
+    "GameRendererMixin",
+    "GuiChatMixin",
+    "KeyboardHandlerMixin",
+    "MinecraftChatMixin",
+    "PostChainAccessor",
+    "PostPassAccessor",
+    "VoiceChatStateMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

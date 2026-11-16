@@ -1,0 +1,19 @@
+{
+  "key.cult_illusion.effect": "Fear / blindness effect (press)",
+  "key.category.cult_illusion.main": "Cult Illusion",
+  "key.cult_illusion.nameless_toggle": "Nameless: toggle automatic manifestations",
+  "key.cult_illusion.ceremony": "Blade ceremony: next stage",
+  "key.cult_illusion.ritual": "Ritual: start / end",
+  "key.cult_illusion.influence": "Cult Illusion: Ability influence — on/off",
+  "gui.cult_illusion.nameless.auto_on": "Nameless: automatic manifestations enabled",
+  "gui.cult_illusion.nameless.auto_off": "Nameless: automatic manifestations disabled",
+  "gui.cult_illusion.influence.on": "Ability influence on you: enabled",
+  "gui.cult_illusion.influence.off": "Ability influence on you: disabled (visual effects only)",
+  "gui.cult_illusion.deity.ritual_start": "Something vast opens above this place.",
+  "gui.cult_illusion.deity.ritual_active": "It is watching.",
+  "gui.cult_illusion.deity.ritual_end": "The gaze slowly turns away.",
+  "gui.cult_illusion.deity.stage_shadow": "The Shadow has entered the blade.",
+  "gui.cult_illusion.deity.stage_whisper": "The blade has begun to speak.",
+  "gui.cult_illusion.deity.stage_seal": "The seal has fallen. What is sealed will never speak again.",
+  "gui.cult_illusion.mark.self": "Target: you"
+}

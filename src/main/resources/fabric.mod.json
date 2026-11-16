@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "cult_illusion",
+  "version": "${version}",
+  "name": "Cult Illusion",
+  "description": "Client-side visual fear/blindness illusion for named netherite swords.",
+  "authors": [],
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "cult.illusion.CultIllusionClient"
+    ]
+  },
+  "mixins": [
+    "cult_illusion.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.3",
+    "minecraft": ">=26.2 <26.4",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "voicechat": ">=2.6.23"
+  }
+}

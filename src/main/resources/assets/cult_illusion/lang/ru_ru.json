@@ -1,0 +1,19 @@
+{
+  "key.cult_illusion.effect": "Активация Силы",
+  "key.category.cult_illusion.main": "Cult Illusion",
+  "key.cult_illusion.nameless_toggle": "Безымянный: вкл/выкл проявления",
+  "key.cult_illusion.ceremony": "Церемония клинков: следующая стадия",
+  "key.cult_illusion.ritual": "Ритуал Безымянного: начать / завершить",
+  "key.cult_illusion.influence": "Влияние способностей — вкл/выкл",
+  "gui.cult_illusion.nameless.auto_on": "Безымянный: проявления включены",
+  "gui.cult_illusion.nameless.auto_off": "Безымянный: проявления выключены",
+  "gui.cult_illusion.influence.on": "Влияние способностей: включено",
+  "gui.cult_illusion.influence.off": "Влияние способностей: выключено (только визуал)",
+  "gui.cult_illusion.deity.ritual_start": "Над этим местом открывается нечто огромное.",
+  "gui.cult_illusion.deity.ritual_active": "Оно смотрит.",
+  "gui.cult_illusion.deity.ritual_end": "Взгляд медленно отворачивается.",
+  "gui.cult_illusion.deity.stage_shadow": "Тень вошла в клинок.",
+  "gui.cult_illusion.deity.stage_whisper": "Клинок заговорил.",
+  "gui.cult_illusion.deity.stage_seal": "Печать легла. То, что запечатано, больше не заговорит.",
+  "gui.cult_illusion.mark.self": "Цель: вы"
+}

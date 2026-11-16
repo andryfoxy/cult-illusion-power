@@ -1,0 +1,30 @@
+{
+  "shadow.ambient3.a": {
+    "sounds": [
+      { "name": "minecraft:block/respawn_anchor/ambient3", "stream": false }
+    ]
+  },
+  "shadow.ambient3.b": {
+    "sounds": [
+      { "name": "minecraft:block/respawn_anchor/respawn_anchor_ambient3", "stream": false }
+    ]
+  },
+  "whisper.voice": {
+    "sounds": [
+      { "name": "cult_illusion:whisper/voice_1", "stream": false },
+      { "name": "cult_illusion:whisper/voice_2", "stream": false },
+      { "name": "cult_illusion:whisper/voice_3", "stream": false },
+      { "name": "cult_illusion:whisper/voice_4", "stream": false }
+    ]
+  },
+  "nameless.presence": {
+    "sounds": [
+      { "name": "cult_illusion:nameless/presence", "stream": true }
+    ]
+  },
+  "nameless.whisper": {
+    "sounds": [
+      { "name": "cult_illusion:nameless/whisper", "stream": true }
+    ]
+  }
+}
