@@ -123,4 +123,17 @@ public final class ScreenAccess {
             LOG.warn("[screen] setScreen(null) failed: {}", e.toString());
         }
     }
+
+    /** Открыть экран через тот же найденный setScreen, что и close (в 26.2 метод может находиться в Minecraft.gui). */
+    public static void open(Minecraft mc, Screen screen) {
+        resolve(mc);
+        if (screenSetter == null) {
+            return;
+        }
+        try {
+            screenSetter.invoke(holderOfGetter, screen);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            LOG.warn("[screen] setScreen(menu) failed: {}", e.toString());
+        }
+    }
 }

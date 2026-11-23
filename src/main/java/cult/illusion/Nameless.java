@@ -65,7 +65,7 @@ public final class Nameless {
     private static final int PHASE_DELAY = 2;   // камера направлена на силуэт: идёт случайная задержка
     private static final int PHASE_VANISH = 3;  // короткий глитч перед исчезновением
 
-    private static boolean autoEnabled = true;  // переключатель H: автоматические проявления (по умолчанию включены)
+    private static boolean autoEnabled = ModSettings.nameless();  // переключатель «Влияние Безымянного» в главном меню: автоматические проявления (по умолчанию включены, значение сохраняется)
     private static boolean armed = false;       // таймер взведён для текущего мира
     private static boolean timerRunning = false;
     private static int timer = 0;
@@ -123,9 +123,23 @@ public final class Nameless {
         }
     }
 
-    /** Клавиша H: включает и выключает автоматические проявления на этом клиенте. */
+    /** true: автоматические проявления Безымянного включены. */
+    public static boolean autoEnabled() {
+        return autoEnabled;
+    }
+
+    /** Переключение из главного меню. */
     public static void toggleAuto(Minecraft mc) {
-        autoEnabled = !autoEnabled;
+        setAuto(mc, !autoEnabled);
+    }
+
+    /** Явно включает или выключает автоматические проявления на этом клиенте и сохраняет выбор. */
+    public static void setAuto(Minecraft mc, boolean value) {
+        if (value == autoEnabled) {
+            return;
+        }
+        autoEnabled = value;
+        ModSettings.setNameless(value);
         if (autoEnabled) {
             timer = rollInterval(); // предыдущий таймер не продолжается: новый случайный интервал 15-30 минут
             timerRunning = true;

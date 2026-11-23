@@ -9,7 +9,6 @@
     "EntityRendererMixin",
     "GameRendererMixin",
     "GuiChatMixin",
-    "KeyboardHandlerMixin",
     "MinecraftChatMixin",
     "PostChainAccessor",
     "PostPassAccessor",

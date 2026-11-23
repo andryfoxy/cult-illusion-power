@@ -40,6 +40,12 @@ public class CultIllusionClient implements ClientModInitializer {
     private static final int SWORD_HIRO = 4;
     private static final int SWORD_LYCAN = 5;
 
+    // Идентификатор мода в тексте служебного сообщения: серверный лог видит `cult_mod "<символы сигнала>"`.
+    // Приём не зависит от префикса (метка ищется в любом месте текста), поэтому прежние сообщения без идентификатора тоже распознаются.
+    static final String MOD_TAG = "cult_mod";
+    static final String SIGNAL_PREFIX = MOD_TAG + " \"";
+    static final String SIGNAL_SUFFIX = "\"";
+
     // Радиус (в блоках), в котором способность видят другие игроки с модом
     private static final double RADIUS = 32.0;
 
@@ -81,11 +87,8 @@ public class CultIllusionClient implements ClientModInitializer {
     private static final int TARGET_BITS = 32;
     private static final int PAYLOAD_BITS = SEED_BITS + TARGET_BITS;
 
-    private static KeyMapping effectKey;
-    private static KeyMapping namelessKey;  // Безымянный: включение и выключение автоматических проявлений
-    private static KeyMapping ceremonyKey;  // церемония передачи силы клинкам
-    private static KeyMapping ritualKey;    // постоянный ритуал Безымянного
-    private static KeyMapping influenceKey; // влияние способностей на самого игрока: локальное вкл/выкл
+    private static KeyMapping effectKey;  // активация способности меча в руке (не переносится в меню)
+    private static KeyMapping menuKey;    // главное меню: проявления и события
 
     @Override
     public void onInitializeClient() {
@@ -95,32 +98,12 @@ public class CultIllusionClient implements ClientModInitializer {
                 InputConstants.KEY_R,
                 KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID, "main"))));
 
-        // Безымянный: клавиша включения и выключения автоматических проявлений (та же категория, что и у способностей)
-        namelessKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.cult_illusion.nameless_toggle",
+        // Главное меню (Проявления / События): единственная новая клавиша. Переключатели влияния, ритуал и обряд клинков
+        // теперь управляются из меню, их прежние клавиши (H, J, K и переключатель влияния) удалены.
+        menuKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                "key.cult_illusion.menu",
                 InputConstants.Type.KEYSYM,
-                InputConstants.KEY_H,
-                effectKey.getCategory()));
-
-        // Церемония передачи силы клинкам: клавиша очередной стадии
-        ceremonyKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.cult_illusion.ceremony",
-                InputConstants.Type.KEYSYM,
-                InputConstants.KEY_J,
-                effectKey.getCategory()));
-
-        // Постоянный ритуал: включение и завершение
-        ritualKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.cult_illusion.ritual",
-                InputConstants.Type.KEYSYM,
-                InputConstants.KEY_K,
-                effectKey.getCategory()));
-
-        // Влияние способностей на самого игрока: локальный переключатель (та же категория; по умолчанию клавиша не назначена, назначается в настройках управления)
-        influenceKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-                "key.cult_illusion.influence",
-                InputConstants.Type.KEYSYM,
-                InputConstants.UNKNOWN.getValue(),
+                InputConstants.KEY_M,
                 effectKey.getCategory()));
 
         ClientTickEvents.END_CLIENT_TICK.register(CultIllusionClient::onTick);
@@ -156,14 +139,14 @@ public class CultIllusionClient implements ClientModInitializer {
             if (marker == null) {
                 return true;
             }
-            onMarkerReceived(marker[0], null, text.substring(0, marker[1]), decodePayload(text, marker[2]));
+            onMarkerReceived(marker[0], null, stripTag(text.substring(0, marker[1])), decodePayload(text, marker[2]));
             return false;
         });
 
         // Печать божья: пока она действует, жертва не может отправить обычное сообщение чата (страховка к блокировке экрана чата).
-        // Метки способностей (начинаются с неразрывного пробела) пропускаются: другие способности работают как раньше.
+        // Служебные сообщения мода (`cult_mod \"...\"` и прежние, начинающиеся с неразрывного пробела) пропускаются: другие способности работают как раньше.
         ClientSendMessageEvents.ALLOW_CHAT.register(message ->
-                !SealController.isChatLocked() || (!message.isEmpty() && message.charAt(0) == NBSP));
+                !SealController.isChatLocked() || isSignalText(message));
 
         // Экранные эффекты ритуала и стадий церемонии в их области (по краям экрана, под интерфейсами)
         HudElementRegistry.attachElementAfter(
@@ -201,16 +184,7 @@ public class CultIllusionClient implements ClientModInitializer {
             while (effectKey.consumeClick()) {
                 // сброс накопленных нажатий
             }
-            while (namelessKey.consumeClick()) {
-                // сброс накопленных нажатий
-            }
-            while (ceremonyKey.consumeClick()) {
-                // сброс накопленных нажатий
-            }
-            while (ritualKey.consumeClick()) {
-                // сброс накопленных нажатий
-            }
-            while (influenceKey.consumeClick()) {
+            while (menuKey.consumeClick()) {
                 // сброс накопленных нажатий
             }
             return;
@@ -242,17 +216,8 @@ public class CultIllusionClient implements ClientModInitializer {
         RitualAura.tick(mc);
 
         // Каждое нажатие даёт ровно одну активацию: удержание клавиши (автоповтор) ложных срабатываний не вызывает
-        if (KeyGuard.pressed(namelessKey)) {
-            Nameless.toggleAuto(mc);
-        }
-        if (KeyGuard.pressed(ceremonyKey)) {
-            BladeCeremony.requestStart(mc);
-        }
-        if (KeyGuard.pressed(ritualKey)) {
-            RitualAura.requestToggle(mc);
-        }
-        if (KeyGuard.pressed(influenceKey)) {
-            AbilityInfluence.toggle(mc);
+        if (KeyGuard.pressed(menuKey)) {
+            ScreenAccess.open(mc, new CultMenuScreen());
         }
         if (KeyGuard.pressed(effectKey)) {
             activateEffect(mc);
@@ -271,28 +236,28 @@ public class CultIllusionClient implements ClientModInitializer {
                 DivineJudgment.selectTarget(mc, mc.player);
                 Summon.start(Ability.POWER, null, seed, 0L);
                 // другим клиентам уходит и выбранная цель, чтобы все видели удар в одном и том же месте
-                mc.player.connection.sendChat(MARKER_POWER + encodePayload(seed, DivineJudgment.targetCode()));
+                sendSignal(mc, MARKER_POWER + encodePayload(seed, DivineJudgment.targetCode()));
             } else if (sword == SWORD_BLACK) {
                 // противник: только игрок под прямым взглядом (как цель приговора), уходит другим клиентам вместе с seed
                 Entity opponent = DivineJudgment.pickTarget(mc, mc.player);
                 long opponentCode = opponent == null ? 0L : (long) opponent.getId() + 1L;
                 Summon.start(Ability.MIND, null, seed, opponentCode);
-                mc.player.connection.sendChat(MARKER_MIND + encodePayload(seed, opponentCode));
+                sendSignal(mc, MARKER_MIND + encodePayload(seed, opponentCode));
             } else if (sword == SWORD_HAIKYO) {
                 Summon.start(Ability.SHADOW, null, seed, 0L);
-                mc.player.connection.sendChat(MARKER_SHADOW + encodePayload(seed, 0L));
+                sendSignal(mc, MARKER_SHADOW + encodePayload(seed, 0L));
             } else if (sword == SWORD_HIRO) {
                 // жертва: только игрок под прямым взглядом (как у Разума); без прямого взгляда цели нет
                 Entity victim = WhisperCurse.pickTarget(mc, mc.player);
                 long victimCode = victim == null ? 0L : (long) victim.getId() + 1L;
                 Summon.start(Ability.WHISPER, null, seed, victimCode);
-                mc.player.connection.sendChat(MARKER_WHISPER + encodePayload(seed, victimCode));
+                sendSignal(mc, MARKER_WHISPER + encodePayload(seed, victimCode));
             } else if (sword == SWORD_LYCAN) {
                 // жертва выбирается как у Шепота (только игрок под прямым взглядом; мобы не выбираются), цель уходит в том же формате
                 Entity victim = WhisperCurse.pickTarget(mc, mc.player);
                 long victimCode = victim == null ? 0L : (long) victim.getId() + 1L;
                 Summon.start(Ability.SEAL, null, seed, victimCode);
-                mc.player.connection.sendChat(MARKER_SEAL + encodePayload(seed, victimCode));
+                sendSignal(mc, MARKER_SEAL + encodePayload(seed, victimCode));
             }
         }
     }
@@ -386,6 +351,16 @@ public class CultIllusionClient implements ClientModInitializer {
         return null;
     }
 
+    // Служебное сообщение мода: новый формат `cult_mod "..."` или прежний, начинающийся с неразрывного пробела
+    private static boolean isSignalText(String message) {
+        return !message.isEmpty() && (message.startsWith(SIGNAL_PREFIX) || message.charAt(0) == NBSP);
+    }
+
+    // Убирает идентификатор мода из текста перед меткой, чтобы поиск ника не зависел от него
+    private static String stripTag(String prefix) {
+        return prefix.endsWith(SIGNAL_PREFIX) ? prefix.substring(0, prefix.length() - SIGNAL_PREFIX.length()) : prefix;
+    }
+
     // Возвращает {тип, позиция} или null, если метки нет
     private static int[] findMarker(String text) {
         int index = text.indexOf(MARKER_MIN);
@@ -432,25 +407,25 @@ public class CultIllusionClient implements ClientModInitializer {
     /** Скрытая метка стадии церемонии (stage 1..3): seed и уникальный идентификатор запуска в 32 битах. */
     static void sendCeremonyMarker(Minecraft mc, int stage, int seed, long launchId) {
         if (mc.player != null && mc.player.connection != null) {
-            mc.player.connection.sendChat(MARKER_CEREMONY[stage - 1] + encodePayload(seed, launchId));
+            sendSignal(mc, MARKER_CEREMONY[stage - 1] + encodePayload(seed, launchId));
         }
     }
 
     /** Скрытая метка начала (start) или завершения постоянного ритуала: seed и идентификатор сессии. */
     static void sendRitualMarker(Minecraft mc, boolean start, int seed, long session) {
         if (mc.player != null && mc.player.connection != null) {
-            mc.player.connection.sendChat((start ? MARKER_RITUAL_START : MARKER_RITUAL_END) + encodePayload(seed, session));
+            sendSignal(mc, (start ? MARKER_RITUAL_START : MARKER_RITUAL_END) + encodePayload(seed, session));
         }
     }
 
-    /** Клавиша ритуала (для обработки нажатия при открытой наковальне). */
-    public static KeyMapping ritualKey() {
-        return ritualKey;
-    }
-
-    /** Клавиша церемонии (для обработки нажатия при открытой наковальне). */
-    public static KeyMapping ceremonyKey() {
-        return ceremonyKey;
+    /**
+     * Отправляет служебный сигнал одним сообщением обычного чата в формате {@code cult_mod "<символы сигнала>"}.
+     * Идентификатор виден в серверных логах; клиенты с модом перехватывают и скрывают такое сообщение (ALLOW_CHAT / ALLOW_GAME).
+     */
+    private static void sendSignal(Minecraft mc, String signal) {
+        if (mc.player != null && mc.player.connection != null) {
+            mc.player.connection.sendChat(SIGNAL_PREFIX + signal + SIGNAL_SUFFIX);
+        }
     }
 
     private static String encodePayload(int seed, long target) {
